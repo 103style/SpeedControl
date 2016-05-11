@@ -18,27 +18,37 @@ import android.view.View;
  */
 public class SpeedControlView extends View implements Runnable {
 
+    //画笔
     private Paint mPaint, textPaint, speedAreaPaint;
     private Context mContext;
+    //屏幕宽高
     private int screenWidth, screenHeight;
+    //仪表盘圆的半径
     private int raduis, sRaduis;
+    //圆心
     private int pointX, pointY;
+    //文字的偏移量
     private float textScale;
+    //速度
     private int speed;
+    //速度范围的2个扇形外切矩形
     private RectF speedRectF, speedRectFInner;
-
+    //速度控制模式  1 加速  2 减速  3 手刹
     private int type;
 
+    // 速度文字 绘制的XY坐标
+    private int baseX, baseY;
+
+    //设置速度控制模式
     public void setType(int type) {
         this.type = type;
     }
 
+    // 设置速度 并重绘视图
     public void setSpeed(int speed) {
         this.speed = speed;
         postInvalidate();
     }
-
-    private int baseX, baseY;// Baseline绘制的XY坐标
 
 
     public SpeedControlView(Context context) {
@@ -52,34 +62,43 @@ public class SpeedControlView extends View implements Runnable {
     public SpeedControlView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContext = context;
+
+        //获取屏幕宽高
         screenWidth = ((Activity) context).getWindowManager().getDefaultDisplay().getWidth();
         screenHeight = ((Activity) context).getWindowManager().getDefaultDisplay().getHeight();
 
+        //关闭硬件加速
         setLayerType(LAYER_TYPE_SOFTWARE, null);
+        //设置抗锯齿
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaint.setAntiAlias(true);
+        //设置画笔样式
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setStrokeWidth(5);
 
+        //初始化  圆心左边 和 半径
         raduis = screenWidth / 3;
         pointX = screenWidth / 2;
         pointY = screenHeight / 4;
 
+        //设置抗锯齿
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setAntiAlias(true);
+        //设置画笔颜色
         textPaint.setColor(Color.WHITE);
         // 获取字体并设置画笔字体
         Typeface typeface = Typeface.createFromAsset(mContext.getAssets(), "kt.ttf");
         textPaint.setTypeface(typeface);
-
+        //设置抗锯齿
         speedAreaPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         speedAreaPaint.setAntiAlias(true);
+        //设置画笔样式
         speedAreaPaint.setStyle(Paint.Style.FILL);
-        // 一个材质,打造出一个线性梯度沿著一条线。
+        // 设置速度范围扇形的渐变颜色
         Shader mShader = new LinearGradient(0, 0, 100, 100,
                 new int[]{0x7001EC9, 0xBF001EC9, 0xFF001EC9}, null, Shader.TileMode.CLAMP);
         speedAreaPaint.setShader(mShader);
-        // 设置个新的长方形，扫描测量
+        // 初始化速度范围的2个扇形外切矩形
         speedRectF = new RectF(pointX - raduis + 10, pointY - raduis + 10, pointX + raduis - 10, pointY + raduis - 10);
         speedRectFInner = new RectF(pointX - raduis / 2, pointY - raduis / 2, pointX + raduis / 2, pointY + raduis / 2);
 
@@ -90,18 +109,18 @@ public class SpeedControlView extends View implements Runnable {
         super.onDraw(canvas);
         canvas.drawColor(Color.BLACK);
 
-        //速度指针
+        //绘制速度范围扇形区域
         speedAreaPaint.setColor(0x7E3F51B5);
         drawSpeedArea(canvas);
 
-        //画外层圆
+        //绘制外层圆
         drawCicle(canvas);
 
-        //变换画笔颜色画刻度
+        //变换画笔颜色 绘制刻度
         mPaint.setColor(0xBF3F6AB5);
         drawScale(canvas);
 
-        //变换画笔颜色画速度标识文字
+        //变换画笔颜色 绘制速度标识文字
         textPaint.setTextSize(25);
         mPaint.setColor(Color.WHITE);
         sRaduis = raduis - 50;
@@ -111,13 +130,13 @@ public class SpeedControlView extends View implements Runnable {
             drawText(canvas, 30 * i);
         }
 
-        //画中间内容
+        //绘制中间内容
         drawCenter(canvas);
 
     }
 
     /**
-     * 画外层圆
+     * 绘制外层圆
      */
     private void drawCicle(Canvas canvas) {
 
@@ -143,7 +162,7 @@ public class SpeedControlView extends View implements Runnable {
     }
 
     /**
-     * 画刻度
+     * 绘制刻度
      */
     private void drawScale(Canvas canvas) {
         for (int i = 0; i < 60; i++) {
@@ -157,7 +176,7 @@ public class SpeedControlView extends View implements Runnable {
     }
 
     /**
-     * 画速度标识文字
+     * 绘制速度标识文字
      */
     private void drawText(Canvas canvas, int value) {
         String TEXT = String.valueOf(value);
@@ -202,7 +221,7 @@ public class SpeedControlView extends View implements Runnable {
     }
 
     /**
-     * 画中间内容
+     * 绘制中间内容
      */
     private void drawCenter(Canvas canvas) {
         //速度
@@ -221,7 +240,7 @@ public class SpeedControlView extends View implements Runnable {
     }
 
     /**
-     * 画速度区域扇形
+     * 绘制速度区域扇形
      */
     private void drawSpeedArea(Canvas canvas) {
         int degree;
@@ -242,7 +261,6 @@ public class SpeedControlView extends View implements Runnable {
     public void run() {
         int speedChange;
         while (true) {
-
             switch (type) {
                 case 1://油门
                     speedChange = 3;
