@@ -8,7 +8,7 @@
 
 修改后
 
-![image](https://github.com/103style/SpeedControl/blob/master/Screenshot/SpeedControl2.gif)
+![image](https://github.com/103style/SpeedControl/blob/master/Screenshot/CarSpeedControl2.gif)
 
 修改前
 
