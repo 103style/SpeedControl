@@ -1,6 +1,5 @@
 package com.hnpolice.xiaoke.carspeedcontrol.view;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,6 +9,7 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.View;
 
 /**
@@ -24,7 +24,7 @@ public class SpeedControlView extends View implements Runnable {
     //屏幕宽高
     private int screenWidth, screenHeight;
     //仪表盘圆的半径
-    private int raduis, sRaduis;
+    private float raduis, sRaduis;
     //圆心
     private int pointX, pointY;
     //文字的偏移量
@@ -41,9 +41,19 @@ public class SpeedControlView extends View implements Runnable {
     // 速度文字 绘制的XY坐标
     private int baseX, baseY;
 
+    //屏幕密度
+    private float mDensityDpi;
+
     //设置速度控制模式
     public void setType(int type) {
         this.type = type;
+    }
+
+    //开始重绘
+    private boolean start = true;
+
+    public void setStart(boolean start) {
+        this.start = start;
     }
 
     // 设置速度 并重绘视图
@@ -66,9 +76,14 @@ public class SpeedControlView extends View implements Runnable {
         mContext = context;
 
         //获取屏幕宽高
-        screenWidth = ((Activity) context).getWindowManager().getDefaultDisplay().getWidth();
-        screenHeight = ((Activity) context).getWindowManager().getDefaultDisplay().getHeight();
+//        screenWidth = ((Activity) context).getWindowManager().getDefaultDisplay().getWidth();
+//        screenHeight = ((Activity) context).getWindowManager().getDefaultDisplay().getHeight();
 
+        //获取屏幕宽高 和 屏幕密度dpi
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        screenWidth = displayMetrics.widthPixels;
+        screenHeight = displayMetrics.heightPixels;
+        mDensityDpi = displayMetrics.densityDpi / 320;
         //关闭硬件加速
         setLayerType(LAYER_TYPE_SOFTWARE, null);
         //设置抗锯齿
@@ -76,12 +91,12 @@ public class SpeedControlView extends View implements Runnable {
         mPaint.setAntiAlias(true);
         //设置画笔样式
         mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setStrokeWidth(5);
+        mPaint.setStrokeWidth(5 * mDensityDpi);
 
         //初始化  圆心左边 和 半径
         raduis = screenWidth / 3;
-        pointX = screenWidth / 2;
-        pointY = screenHeight / 4;
+        pointX = pointY = screenWidth / 2;
+//        pointY = screenHeight / 4;
 
         //设置抗锯齿
         textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -97,12 +112,15 @@ public class SpeedControlView extends View implements Runnable {
         //设置画笔样式
         speedAreaPaint.setStyle(Paint.Style.FILL);
         // 设置速度范围扇形的渐变颜色
-        Shader mShader = new LinearGradient(0, 0, 100, 100,
-                new int[]{0x7001EC9, 0xBF001EC9, 0xFF001EC9}, null, Shader.TileMode.CLAMP);
+        Shader mShader = new LinearGradient(pointX - raduis, pointY, pointX + raduis, pointY,
+                new int[]{0xFF445EED, 0xFF072AE9, 0xFF0625CE}, null, Shader.TileMode.CLAMP);
         speedAreaPaint.setShader(mShader);
         // 初始化速度范围的2个扇形外切矩形
-        speedRectF = new RectF(pointX - raduis + 10, pointY - raduis + 10, pointX + raduis - 10, pointY + raduis - 10);
-        speedRectFInner = new RectF(pointX - raduis / 2, pointY - raduis / 2, pointX + raduis / 2, pointY + raduis / 2);
+        speedRectF = new RectF(pointX - raduis + 10 * mDensityDpi, pointY - raduis + 10 * mDensityDpi,
+                pointX + raduis - 10 * mDensityDpi, pointY + raduis - 10 * mDensityDpi);
+        speedRectFInner = new RectF(pointX - raduis / 2, pointY - raduis / 2,
+                pointX + raduis / 2, pointY + raduis / 2);
+
 
     }
 
@@ -124,9 +142,9 @@ public class SpeedControlView extends View implements Runnable {
         drawScale(canvas);
 
         //变换画笔颜色 绘制速度标识文字
-        textPaint.setTextSize(25);
+        textPaint.setTextSize(25 * mDensityDpi);
         mPaint.setColor(Color.WHITE);
-        sRaduis = raduis - 50;
+        sRaduis = raduis - 50 * mDensityDpi;
         textScale = Math.abs(textPaint.descent() + textPaint.ascent()) / 2;
 //        Log.e("textScale", textScale + "");
         for (int i = 0; i < 8; i++) {
@@ -150,18 +168,18 @@ public class SpeedControlView extends View implements Runnable {
         //外圈2个圆
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(0xBF3F6AB5);
-        mPaint.setStrokeWidth(4);
+        mPaint.setStrokeWidth(4 * mDensityDpi);
         canvas.drawCircle(pointX, pointY, raduis, mPaint);
-        mPaint.setStrokeWidth(3);
-        canvas.drawCircle(pointX, pointY, raduis - 10, mPaint);
+        mPaint.setStrokeWidth(3 * mDensityDpi);
+        canvas.drawCircle(pointX, pointY, raduis - 10 * mDensityDpi, mPaint);
 
         //内圈2个圆
-        mPaint.setStrokeWidth(5);
+        mPaint.setStrokeWidth(5 * mDensityDpi);
         mPaint.setColor(0xE73F51B5);
         canvas.drawCircle(pointX, pointY, raduis / 2, mPaint);
         mPaint.setColor(0x7E3F51B5);
-        canvas.drawCircle(pointX, pointY, raduis / 2 + 5, mPaint);
-        mPaint.setStrokeWidth(3);
+        canvas.drawCircle(pointX, pointY, raduis / 2 + 5 * mDensityDpi, mPaint);
+        mPaint.setStrokeWidth(3 * mDensityDpi);
 
     }
 
@@ -185,24 +203,6 @@ public class SpeedControlView extends View implements Runnable {
         canvas.drawArc(speedRectFInner, 144, degree, true, mPaint);
         mPaint.setStyle(Paint.Style.STROKE);
 
-//        if (speed < 30) {
-//            linePointerX = (float) (pointX - (raduis - 10) * Math.cos(Math.PI / 5 - Math.PI * speed * 36 / 30));
-//            linePointerY = (float) (pointY + (raduis - 10) * Math.sin(Math.PI / 5 - Math.PI * speed * 36 / 30));
-//        } else if (speed < 105) {
-//            linePointerX = (float) (pointX - (raduis - 10) * Math.cos(Math.PI * (speed - 30) * 36 / 30));
-//            linePointerY = (float) (pointY - (raduis - 10) * Math.sin(Math.PI * (speed - 30) * 36 / 30));
-//        } else if (speed < 180) {
-//            linePointerX = (float) (pointX + (raduis - 10) * Math.sin(Math.PI * (speed - 105) * 36 / 30));
-//            linePointerY = (float) (pointY - (raduis - 10) * Math.cos(Math.PI * (speed - 105) * 36 / 30));
-//        } else if (speed < 210) {
-//            linePointerX = (float) (pointX + (raduis - 10) * Math.cos(Math.PI * (speed - 180) * 36 / 30));
-//            linePointerY = (float) (pointY + (raduis - 10) * Math.sin(Math.PI * (speed - 180) * 36 / 30));
-//        } else {
-//            linePointerX = (float) (pointX + (raduis - 10) * Math.cos(Math.PI / 5));
-//            linePointerY = (float) (pointY + (raduis - 10) * Math.sin(Math.PI / 5));
-//        }
-//        mPaint.setColor(0x88FFFFFF);
-//        canvas.drawLine(linePointerX, linePointerY, pointX, pointY, mPaint);
 
     }
 
@@ -213,9 +213,9 @@ public class SpeedControlView extends View implements Runnable {
     private void drawScale(Canvas canvas) {
         for (int i = 0; i < 60; i++) {
             if (i % 6 == 0) {
-                canvas.drawLine(pointX - raduis + 10, pointY, pointX - raduis + 50, pointY, mPaint);
+                canvas.drawLine(pointX - raduis + 10 * mDensityDpi, pointY, pointX - raduis + 50 * mDensityDpi, pointY, mPaint);
             } else {
-                canvas.drawLine(pointX - raduis + 10, pointY, pointX - raduis + 30, pointY, mPaint);
+                canvas.drawLine(pointX - raduis + 10 * mDensityDpi, pointY, pointX - raduis + 30 * mDensityDpi, pointY, mPaint);
             }
             canvas.rotate(6, pointX, pointY);
         }
@@ -234,7 +234,7 @@ public class SpeedControlView extends View implements Runnable {
                 baseY = (int) (pointY + sRaduis * Math.sin(Math.PI / 5) + textScale / 2);
                 break;
             case 30:
-                baseX = (int) (pointX - raduis + 50 + textPaint.measureText(TEXT) / 2);
+                baseX = (int) (pointX - raduis + 50 * mDensityDpi + textPaint.measureText(TEXT) / 2);
                 baseY = (int) (pointY + textScale);
                 break;
             case 60:
@@ -271,14 +271,14 @@ public class SpeedControlView extends View implements Runnable {
      */
     private void drawCenter(Canvas canvas) {
         //速度
-        textPaint.setTextSize(60);
+        textPaint.setTextSize(60 * mDensityDpi);
         float tw = textPaint.measureText(String.valueOf(speed));
         baseX = (int) (pointX - tw / 2);
         baseY = (int) (pointY + Math.abs(textPaint.descent() + textPaint.ascent()) / 4);
         canvas.drawText(String.valueOf(speed), baseX, baseY, textPaint);
 
         //单位
-        textPaint.setTextSize(20);
+        textPaint.setTextSize(20 * mDensityDpi);
         tw = textPaint.measureText("km/h");
         baseX = (int) (pointX - tw / 2);
         baseY = (int) (pointY + raduis / 4 + Math.abs(textPaint.descent() + textPaint.ascent()) / 4);
@@ -289,7 +289,7 @@ public class SpeedControlView extends View implements Runnable {
     @Override
     public void run() {
         int speedChange;
-        while (true) {
+        while (start) {
             switch (type) {
                 case 1://油门
                     speedChange = 3;

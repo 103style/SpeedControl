@@ -9,7 +9,7 @@ import android.widget.Button;
 import com.hnpolice.xiaoke.carspeedcontrol.R;
 import com.hnpolice.xiaoke.carspeedcontrol.view.SpeedControlView;
 
-public class SpeedControlActivity extends AppCompatActivity{
+public class SpeedControlActivity extends AppCompatActivity {
 
     private SpeedControlView speedControlView;
     private Button speedUp; //油门
@@ -22,8 +22,6 @@ public class SpeedControlActivity extends AppCompatActivity{
         setContentView(R.layout.activity_speed_control);
         speedControlView = (SpeedControlView) findViewById(R.id.speed_control);
 
-        new Thread(speedControlView).start();
-
         //实体化
         speedUp = (Button) findViewById(R.id.speed_up);
         speedDown = (Button) findViewById(R.id.speed_down);
@@ -33,7 +31,7 @@ public class SpeedControlActivity extends AppCompatActivity{
         speedUp.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()){
+                switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         //按下的时候加速
                         speedControlView.setType(1);
@@ -49,7 +47,7 @@ public class SpeedControlActivity extends AppCompatActivity{
         speedDown.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()){
+                switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         //按下的时候减速
                         speedControlView.setType(2);
@@ -65,7 +63,7 @@ public class SpeedControlActivity extends AppCompatActivity{
         shutDown.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()){
+                switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         //按下的时候拉手刹
                         speedControlView.setType(3);
@@ -79,7 +77,25 @@ public class SpeedControlActivity extends AppCompatActivity{
             }
         });
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (speedControlView != null) {
+            speedControlView.setSpeed(0);
+            speedControlView.setStart(true);
+        }
+        new Thread(speedControlView).start();
 
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (speedControlView != null) {
+            speedControlView.setSpeed(0);
+            speedControlView.setStart(false);
+        }
+    }
 }
