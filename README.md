@@ -6,4 +6,10 @@
 效果图如下：
 觉得不错的话 右上角star 谢谢
 
+修改后
+
+![image](https://github.com/103style/SpeedControl/blob/master/Screenshot/SpeedControl2.gif)
+
+修改前
+
 ![image](https://github.com/103style/SpeedControl/blob/master/Screenshot/SpeedControl.gif)
