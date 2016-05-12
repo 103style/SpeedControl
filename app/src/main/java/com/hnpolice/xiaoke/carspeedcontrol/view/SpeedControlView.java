@@ -29,6 +29,8 @@ public class SpeedControlView extends View implements Runnable {
     private int pointX, pointY;
     //文字的偏移量
     private float textScale;
+    //速度指针变化的位置
+    private float linePointerX, linePointerY;
     //速度
     private int speed;
     //速度范围的2个扇形外切矩形
@@ -109,12 +111,13 @@ public class SpeedControlView extends View implements Runnable {
         super.onDraw(canvas);
         canvas.drawColor(Color.BLACK);
 
+        //绘制外层圆
+        drawCicle(canvas);
+
         //绘制速度范围扇形区域
         speedAreaPaint.setColor(0x7E3F51B5);
         drawSpeedArea(canvas);
 
-        //绘制外层圆
-        drawCicle(canvas);
 
         //变换画笔颜色 绘制刻度
         mPaint.setColor(0xBF3F6AB5);
@@ -130,7 +133,7 @@ public class SpeedControlView extends View implements Runnable {
             drawText(canvas, 30 * i);
         }
 
-        //绘制中间内容
+        //绘制中间文字内容
         drawCenter(canvas);
 
     }
@@ -140,6 +143,7 @@ public class SpeedControlView extends View implements Runnable {
      */
     private void drawCicle(Canvas canvas) {
 
+        mPaint.setStyle(Paint.Style.FILL);
         mPaint.setColor(0xFF343434);
         canvas.drawCircle(pointX, pointY, raduis, mPaint);
 
@@ -160,6 +164,48 @@ public class SpeedControlView extends View implements Runnable {
         mPaint.setStrokeWidth(3);
 
     }
+
+    /**
+     * 绘制速度区域扇形
+     */
+    private void drawSpeedArea(Canvas canvas) {
+        int degree;
+        if (speed < 210) {
+            degree = speed * 36 / 30;
+        } else {
+            degree = 210 * 36 / 30;
+        }
+
+        canvas.drawArc(speedRectF, 144, degree, true, speedAreaPaint);
+
+        // TODO: 2016/5/12
+        //不显示中间的内圈的扇形区域
+        mPaint.setColor(0xFF343434);
+        mPaint.setStyle(Paint.Style.FILL);
+        canvas.drawArc(speedRectFInner, 144, degree, true, mPaint);
+        mPaint.setStyle(Paint.Style.STROKE);
+
+//        if (speed < 30) {
+//            linePointerX = (float) (pointX - (raduis - 10) * Math.cos(Math.PI / 5 - Math.PI * speed * 36 / 30));
+//            linePointerY = (float) (pointY + (raduis - 10) * Math.sin(Math.PI / 5 - Math.PI * speed * 36 / 30));
+//        } else if (speed < 105) {
+//            linePointerX = (float) (pointX - (raduis - 10) * Math.cos(Math.PI * (speed - 30) * 36 / 30));
+//            linePointerY = (float) (pointY - (raduis - 10) * Math.sin(Math.PI * (speed - 30) * 36 / 30));
+//        } else if (speed < 180) {
+//            linePointerX = (float) (pointX + (raduis - 10) * Math.sin(Math.PI * (speed - 105) * 36 / 30));
+//            linePointerY = (float) (pointY - (raduis - 10) * Math.cos(Math.PI * (speed - 105) * 36 / 30));
+//        } else if (speed < 210) {
+//            linePointerX = (float) (pointX + (raduis - 10) * Math.cos(Math.PI * (speed - 180) * 36 / 30));
+//            linePointerY = (float) (pointY + (raduis - 10) * Math.sin(Math.PI * (speed - 180) * 36 / 30));
+//        } else {
+//            linePointerX = (float) (pointX + (raduis - 10) * Math.cos(Math.PI / 5));
+//            linePointerY = (float) (pointY + (raduis - 10) * Math.sin(Math.PI / 5));
+//        }
+//        mPaint.setColor(0x88FFFFFF);
+//        canvas.drawLine(linePointerX, linePointerY, pointX, pointY, mPaint);
+
+    }
+
 
     /**
      * 绘制刻度
@@ -221,7 +267,7 @@ public class SpeedControlView extends View implements Runnable {
     }
 
     /**
-     * 绘制中间内容
+     * 绘制中间文字内容
      */
     private void drawCenter(Canvas canvas) {
         //速度
@@ -237,23 +283,6 @@ public class SpeedControlView extends View implements Runnable {
         baseX = (int) (pointX - tw / 2);
         baseY = (int) (pointY + raduis / 4 + Math.abs(textPaint.descent() + textPaint.ascent()) / 4);
         canvas.drawText("km/h", baseX, baseY, textPaint);
-    }
-
-    /**
-     * 绘制速度区域扇形
-     */
-    private void drawSpeedArea(Canvas canvas) {
-        int degree;
-        if (speed < 210) {
-            degree = speed * 36 / 30;
-        } else {
-            degree = 210 * 36 / 30;
-        }
-
-        canvas.drawArc(speedRectF, 144, degree, true, speedAreaPaint);
-        mPaint.setColor(Color.BLACK);
-        canvas.drawArc(speedRectFInner, 144, degree, true, mPaint);
-
     }
 
 
